@@ -1,6 +1,6 @@
 # @zakkster/lite-channel
 
-[![npm version](https://img.shields.io/npm/v/@zakkster/lite-channel.svg?style=for-the-badge&color=cb3837)](https://www.npmjs.com/package/@zakkster/lite-channel)
+[![npm version](https://img.shields.io/npm/v/@zakkster/lite-channel.svg?style=for-the-badge&color=latest)](https://www.npmjs.com/package/@zakkster/lite-channel)
 [![npm bundle size](https://img.shields.io/bundlephobia/minzip/@zakkster/lite-channel?style=for-the-badge)](https://bundlephobia.com/result?p=@zakkster/lite-channel)
 [![npm downloads](https://img.shields.io/npm/dm/@zakkster/lite-channel?style=for-the-badge&color=blue)](https://www.npmjs.com/package/@zakkster/lite-channel)
 [![npm total downloads](https://img.shields.io/npm/dt/@zakkster/lite-channel?style=for-the-badge&color=blue)](https://www.npmjs.com/package/@zakkster/lite-channel)
