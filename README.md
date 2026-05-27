@@ -144,7 +144,7 @@ sequenceDiagram
     participant BC as BroadcastChannel
     participant B as Tab B (new)
 
-    Note over B: createTabSync(); sync(sig, key)
+    Note over B: createTabSync()<br/>sync(signal)
     B->>BC: join
     B->>BC: req
     BC->>A: req
@@ -154,7 +154,7 @@ sequenceDiagram
 
     Note over A: signal write
     A->>BC: state { key, value, clock+1, writer:A }
-    BC->>B: apply iff (clock,writer) is newer; echo-suppressed
+    BC->>B: apply iff newer<br/>(echo-suppressed)
 ```
 
 The write path is **echo-suppressed**: when an inbound update is applied to a signal, an internal flag tells that signal's broadcast subscriber to stay quiet, so a value can't ping-pong A→B→A. (This relies on lite-signal's synchronous subscriber dispatch — synced signals must use the default scheduler.)
