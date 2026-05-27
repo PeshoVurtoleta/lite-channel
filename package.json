@@ -1,6 +1,6 @@
 {
   "name": "@zakkster/lite-channel",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "Zahary Shinikchiev <shinikchiev@yahoo.com>",
   "description": "Cross-tab synchronization for @zakkster/lite-signal over BroadcastChannel. Multiplexed per-key sync, deterministic last-writer-wins (Lamport clock + tab-id tiebreak), and reactive presence — peers, status, and leader election exposed as signals.",
   "type": "module",
