@@ -1,0 +1,66 @@
+{
+  "name": "@zakkster/lite-channel",
+  "version": "1.0.0",
+  "author": "Zahary Shinikchiev <shinikchiev@yahoo.com>",
+  "description": "Cross-tab synchronization for @zakkster/lite-signal over BroadcastChannel. Multiplexed per-key sync, deterministic last-writer-wins (Lamport clock + tab-id tiebreak), and reactive presence — peers, status, and leader election exposed as signals.",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./Channel.js",
+  "module": "./Channel.js",
+  "types": "./Channel.d.ts",
+  "exports": {
+    ".": {
+      "node": "./Channel.js",
+      "import": "./Channel.js",
+      "types": "./Channel.d.ts",
+      "default": "./Channel.js"
+    }
+  },
+  "files": [
+    "Channel.js",
+    "Channel.d.ts",
+    "README.md",
+    "llms.txt",
+    "LICENSE.txt"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "test:watch": "node --test --watch test/*.test.js",
+    "demo": "node -e \"console.log('Serve the repo and open example/demo.html in two tabs (npx serve .)')\""
+  },
+  "keywords": [
+    "broadcastchannel",
+    "cross-tab",
+    "tab-sync",
+    "multi-tab",
+    "signals",
+    "reactive",
+    "state-sync",
+    "lamport",
+    "crdt",
+    "lww",
+    "leader-election",
+    "presence",
+    "lite-signal",
+    "zero-dependency"
+  ],
+  "peerDependencies": {
+    "@zakkster/lite-signal": "^1.1.2"
+  },
+  "devDependencies": {
+    "@zakkster/lite-signal": "^1.1.2"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/PeshoVurtoleta/lite-channel#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PeshoVurtoleta/lite-channel.git"
+  },
+  "bugs": {
+    "url": "https://github.com/PeshoVurtoleta/lite-channel/issues",
+    "email": "shinikchiev@yahoo.com"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

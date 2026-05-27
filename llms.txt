@@ -1,0 +1,86 @@
+# @zakkster/lite-channel
+
+> Cross-tab synchronization for @zakkster/lite-signal over BroadcastChannel. Binds writable signals
+> to a channel; multiplexes many signals per channel by key; resolves conflicts with a CRDT
+> last-writer-wins register (Lamport clock + stable tab-id tiebreak) so concurrent writes converge
+> deterministically; exposes presence (peers, status, isLeader, members) AS reactive signals.
+> ESM-only. Peer-depends on @zakkster/lite-signal ^1.1.0. Same-origin/same-device only (tab sync, not network sync). MIT. Author: Zahary Shinikchiev.
+
+## Install
+npm i @zakkster/lite-channel @zakkster/lite-signal
+@zakkster/lite-signal is a peer dependency; the synced signals are created in your app's registry.
+
+## Import
+import { createTabSync, syncSignal } from '@zakkster/lite-channel';
+
+## API
+- createTabSync(channelName, options?) -> TabSync
+    TabSync = { channelName, tabId, sync(sig, key?='default') -> {dispose}, peers, status, isLeader, members, dispose() }
+- syncSignal(sig, channelName, options?) -> { dispose, peers, status, isLeader, members }
+    Convenience for a single signal (key 'default').
+
+Options:
+- schedule(flush): outbound flush scheduler. Default (f)=>queueMicrotask(f). Use (f)=>f() for sync flush; adapt @zakkster/lite-raf for frame cadence.
+- persist=true: mirror each key to localStorage (JSON) for lone-tab cold start.
+- heartbeatMs=2000: presence re-announce interval; 0 disables.
+- evictMs=5000: drop a peer unheard-from this long.
+- readyMs=150: lone tab flips status to 'synced' after this window if no snapshot.
+- onError=console.error: sink for clone/storage failures.
+
+Reactive presence signals (read-only: callable + .peek() + .subscribe(fn)->unsub):
+- peers: number of OTHER live tabs.
+- status: 'connecting' | 'synced'.
+- isLeader: boolean, true in exactly one tab (lowest live tabId). Gate singleton work with effect(()=>{ if(isLeader()) ... }).
+- members: sorted live tab ids incl self.
+
+## Protocol (BroadcastChannel messages)
+- join { id }: presence announce; on receiving a NEW peer, re-announce so the newcomer learns us.
+- leave { id }: sent on dispose / pagehide / beforeunload.
+- req { id }: cold-start snapshot request (sent on each sync()).
+- state { id, updates:[{key,value,clock,w}], snapshot? }: value broadcast; snapshot:true when answering a req.
+Heartbeat re-announces join every heartbeatMs and evicts peers older than evictMs.
+
+## Conflict model (CRDT LWW-register, per key)
+Keep per key (clock, lastWriter). Accept remote iff:
+  remote.clock > local.clock  OR  (remote.clock === local.clock && remote.writer > local.writer)
+On accept: clock = max(local, remote). On local write: clock += 1, writer = self.
+Cold start: a tab with no state yet adopts a snapshot unconditionally; afterwards strict order applies.
+Result: all tabs applying the same updates converge to identical state regardless of order. The original
+naive `incoming.clock > clock` (no tiebreak) DIVERGED on equal-clock concurrent writes — this fixes it.
+
+## Echo suppression
+Applying an inbound value sets an `applying` flag so that signal's broadcast subscriber does not re-emit
+(prevents A->B->A loops). REQUIRES synchronous subscriber dispatch (lite-signal default). Do not sync a
+signal whose subscriber runs on a deferred scheduler.
+
+## Mount-broadcast guard
+lite-signal subscribe() fires immediately on registration; lite-channel swallows that first call so binding
+a signal never broadcasts its initial value spuriously.
+
+## Coalescing
+A burst of synchronous .set() collapses to ONE broadcast of the final value, flushed via `schedule`.
+
+## Persistence
+Each key mirrored to localStorage key "lite-channel:<channelName>:<key>" as {value,clock,w}. On sync() a
+lone tab hydrates from storage (sets value under the echo guard, seeds clock). Live peers override if newer.
+
+## Examples
+// single signal
+const theme = signal('dark'); const t = syncSignal(theme, 'app:theme'); theme.set('light'); // all tabs update
+// multiplex + leader-gated work
+const bus = createTabSync('app'); bus.sync(cart,'cart'); bus.sync(filters,'filters');
+effect(()=>{ if (bus.isLeader()) startServerPolling(); });
+effect(()=>{ peerBadge.textContent = bus.peers(); });
+
+## Gotchas / limits
+- Same origin + same browser + same device only. Not WebSocket/Yjs/Automerge.
+- Per-key single LWW value; no field-level merge. Split independent fields into separate keys.
+- Only writable signals (computeds have no .set).
+- Values must be structured-cloneable (and JSON-serialisable if persist on); non-cloneable -> onError.
+
+## Testing
+npm test -> 15 deterministic node:test cases via an in-process BroadcastChannel mock (test/harness.js) +
+synchronous schedule; pause()/flush() simulates concurrency; fake timers for eviction. No real tabs needed.
+
+## Not in scope
+Network/cross-device sync, multi-user collaboration, conflict-free field merging, server persistence.
